@@ -1,0 +1,295 @@
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PA TOKENS CASINO</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+background:#0a0a0a;
+color:white;
+overflow-x:hidden;
+}
+
+header{
+display:flex;
+justify-content:space-between;
+padding:12px;
+background:#111;
+border-bottom:1px solid #222;
+position:sticky;
+top:0;
+z-index:10;
+}
+
+#bal{
+color:#00ff99;
+font-weight:bold;
+}
+
+.container{padding:12px;padding-bottom:90px;}
+
+.card{
+background:#151515;
+border:1px solid #222;
+border-radius:12px;
+padding:12px;
+margin:10px 0;
+}
+
+input{
+width:100%;
+padding:10px;
+margin:5px 0;
+border-radius:8px;
+border:1px solid #333;
+background:#111;
+color:white;
+box-sizing:border-box;
+}
+
+button{
+padding:10px;
+margin:5px 0;
+background:#1d1d1d;
+color:white;
+border:1px solid #333;
+border-radius:8px;
+cursor:pointer;
+width:100%;
+transition:0.2s;
+}
+
+button:hover{
+background:#2a2a2a;
+box-shadow:0 0 10px #00ff99;
+}
+
+.glow{
+box-shadow:0 0 12px #00ff99;
+border-color:#00ff99;
+}
+
+.reel{
+font-size:42px;
+display:inline-block;
+width:60px;
+text-align:center;
+}
+
+.screen{display:none;}
+.active{display:block;}
+
+.nav{
+position:fixed;
+bottom:0;
+left:0;
+right:0;
+display:flex;
+background:#111;
+border-top:1px solid #222;
+}
+
+.nav button{
+flex:1;
+border:none;
+background:none;
+padding:12px;
+color:white;
+}
+
+.small{font-size:12px;opacity:0.8;}
+
+/* монеты */
+.coin{
+position:fixed;
+font-size:20px;
+animation:fall 1s linear forwards;
+pointer-events:none;
+}
+
+@keyframes fall{
+0%{transform:translateY(0);opacity:1;}
+100%{transform:translateY(-200px);opacity:0;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div>🎰 PA TOKENS</div>
+<div id="bal"></div>
+</header>
+
+<div class="container">
+
+<!-- SLOT -->
+<div class="card">
+<h3>🎰 Слот</h3>
+
+<input id="bet" placeholder="ставка">
+
+<div>
+<span class="reel" id="r1">🍒</span>
+<span class="reel" id="r2">🍒</span>
+<span class="reel" id="r3">🍒</span>
+</div>
+
+<button id="spinBtn" class="glow" onclick="spin()">Крутить</button>
+
+<div class="small" id="paytable">
+💎💎💎 x20<br>
+🍇🍇🍇 x10<br>
+🍊🍊🍊 x5<br>
+🍒🍒🍒 x3<br>
+7️⃣7️⃣7️⃣ x50<br>
+пара x0.5
+</div>
+</div>
+
+<!-- DAILY -->
+<div class="card">
+<h3>🎁 Daily задания</h3>
+<p id="dailyText"></p>
+<button onclick="claimDaily()">Забрать</button>
+
+<div class="small">
+• 5 спинов = 5000<br>
+• 10 спинов = 15000<br>
+• 20 спинов = 50000
+</div>
+</div>
+
+</div>
+
+<!-- NAV -->
+<div class="nav">
+<button onclick="alert('casino')">🎰</button>
+<button onclick="alert('bank')">🏦</button>
+<button onclick="alert('daily')">🎁</button>
+</div>
+
+<script>
+
+let user={
+bal:2000,
+spins:0,
+lastDaily:0
+};
+
+const symbols=["🍒","🍊","🍇","💎","7️⃣"];
+
+function update(){
+document.getElementById("bal").innerText="💰 "+user.bal;
+document.getElementById("dailyText").innerText="Спинов: "+user.spins;
+}
+
+function spin(){
+
+let bet=+document.getElementById("bet").value;
+if(!bet||bet>user.bal)return;
+
+user.bal-=bet;
+user.spins++;
+
+let r1=document.getElementById("r1");
+let r2=document.getElementById("r2");
+let r3=document.getElementById("r3");
+
+let t=setInterval(()=>{
+r1.innerText=symbols[Math.random()*symbols.length|0];
+r2.innerText=symbols[Math.random()*symbols.length|0];
+r3.innerText=symbols[Math.random()*symbols.length|0];
+},60);
+
+setTimeout(()=>{
+
+clearInterval(t);
+
+let res=[
+symbols[Math.random()*symbols.length|0],
+symbols[Math.random()*symbols.length|0],
+symbols[Math.random()*symbols.length|0]
+];
+
+r1.innerText=res[0];
+r2.innerText=res[1];
+r3.innerText=res[2];
+
+let mult=0;
+
+if(res[0]=="7️⃣"&&res[1]=="7️⃣"&&res[2]=="7️⃣") mult=50;
+else if(res[0]=="💎"&&res[1]=="💎"&&res[2]=="💎") mult=20;
+else if(res[0]=="🍇"&&res[1]=="🍇"&&res[2]=="🍇") mult=10;
+else if(res[0]=="🍊"&&res[1]=="🍊"&&res[2]=="🍊") mult=5;
+else if(res[0]=="🍒"&&res[1]=="🍒"&&res[2]=="🍒") mult=3;
+else if(res[0]==res[1]||res[1]==res[2]) mult=0.5;
+
+let win=bet*mult;
+
+if(win>0){
+user.bal+=win;
+effect();
+sound();
+}
+
+update();
+
+},900);
+}
+
+/* COINS */
+function effect(){
+for(let i=0;i<15;i++){
+let c=document.createElement("div");
+c.className="coin";
+c.innerText="💰";
+c.style.left=Math.random()*100+"vw";
+c.style.top="70vh";
+document.body.appendChild(c);
+setTimeout(()=>c.remove(),1000);
+}
+}
+
+/* SOUND */
+function sound(){
+let ctx=new (window.AudioContext||window.webkitAudioContext)();
+let o=ctx.createOscillator();
+o.type="square";
+o.frequency.value=600;
+o.connect(ctx.destination);
+o.start();
+setTimeout(()=>o.stop(),100);
+}
+
+/* DAILY */
+function claimDaily(){
+
+if(user.spins>=20){
+user.bal+=50000;
+user.spins=0;
+}
+else if(user.spins>=10){
+user.bal+=15000;
+user.spins=0;
+}
+else if(user.spins>=5){
+user.bal+=5000;
+user.spins=0;
+}
+
+update();
+}
+
+update();
+
+</script>
+
+</body>
+</html>
